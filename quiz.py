@@ -1,19 +1,20 @@
 import json
 import os
+import sys
+from pathlib import Path
+
 from json.decoder import JSONDecodeError
 
 
 student_name = ''
 student_roll = ''
-QUIZ_FILE = r"./data/quiz.json"
-SCORE_FILE = r"./data/score.json"
+QUIZ_FILE = r"quiz.json"
+SCORE_FILE = r"score.json"
 
 
 
 def teacher_mode():
     clear_screen()
-
-    print("You are a Teacher\n\n\n")
 
     print("1. Press 1 for list all questrion\n")
     print("2. Press 2 for add new question\n")
@@ -44,8 +45,6 @@ def student_mode():
         student_name = input("Enter your name: ")
         clear_screen()
 
-    print("You are a Student\n\n\n")
-
     print("1. Press 1 for answer questrions\n")
     print("2. Press 0 for Exit!\n")
 
@@ -72,7 +71,9 @@ def answer_questions():
         score = 0
         for item in quizs:
             clear_screen()
-            print("{}. {}\n".format(item["id"], item["question"]))
+            print("{}. {}".format(item["id"], item["question"]))
+            print_column('', 50, '_', "\n\n")
+
             for option in item['options']:
                 print("\t{}. {}\n".format(option['key'], option['value']))
             answer = input("Enter your choice: ")
@@ -117,6 +118,8 @@ def store_score(score):
 # Add new question
 def add_new_question():
     global QUIZ_FILE
+    clear_screen()
+
     question = input("Enter question:\n")
     option_a = input("Enter option A: ")
     option_b = input("Enter option B: ")
@@ -164,10 +167,23 @@ def list_questions():
     if quizs is None:
         quizs = []
     
+    if(len(quizs) == 0):
+        print("There are no questions. Please add question first.\n\n")
+
+        print("1. Press 1 for back\n")
+        print("2. Press 0 for Exit!\n")
+
+        command = get_user_command([1, 0])
+
+        if command == 1:
+            teacher_mode()
+        else:
+            exit_program()
+    
     for item in quizs:
         print("{}. {}".format(item["id"], item["question"]))
+        # print_column('', 50, '_', "\n\n")
     
-    print("\n\n\n")
     print("1. Press 1 for delete question\n")
     print("2. Press 2 for back\n")
     print("3. Press 0 for Exit!\n")
@@ -197,7 +213,7 @@ def view_students_score():
         scores = []
     
     if(len(scores) == 0):
-        print("There are no score.")
+        print("There are no score.\n\n")
 
         print("1. Press 1 for back\n")
         print("2. Press 0 for Exit!\n")
@@ -234,24 +250,30 @@ def print_score(scores):
         print_column(item["score"], 30)
         print("")
 
-def print_column(text, column_length):
+def print_column(text, column_length, space_text = " ",  end_text = ""):
     text = str(text)
     space_ranges = range(column_length - len(text))
 
     spaces =""
     for i in space_ranges:
-        spaces += " "
+        spaces += space_text
     
-    print(text + spaces, end="")
+    print(text + spaces, end=end_text)
     
 # Get data from json file
 def get_json_data(filename):
-  with open(filename, 'r+') as json_file:
-    try:
-        data = json.load(json_file)
-        return data
-    except JSONDecodeError:
-        pass
+    # filename = os.path.join(sys.path[0], filename)
+
+    file = Path(filename)
+    file.touch(exist_ok=True)
+
+
+    with open(filename, 'r+') as json_file:
+        try:
+            data = json.load(json_file)
+            return data
+        except JSONDecodeError:
+            pass
 #Store text data to json file
 def store_json_data(filename, data):
     with open(filename, 'w+') as outfile:
@@ -304,7 +326,7 @@ def exit_program():
 
 
 def main():
-    print("\t\t\t\t\tWelcome to QUIZ App\t\t\t\t")
+    print("\t\t\t\t\tWelcome to QUIZ App\t\t\t\t\t")
     print("\n\n")
 
     print("1. Press 1 for Teacher\n")
