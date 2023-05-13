@@ -2,6 +2,7 @@ import json
 import os
 from json.decoder import JSONDecodeError
 
+
 student_name = ''
 student_roll = ''
 QUIZ_FILE = r"./data/quiz.json"
@@ -16,15 +17,19 @@ def teacher_mode():
 
     print("1. Press 1 for list all questrion\n")
     print("2. Press 2 for add new question\n")
-    print("3. Press 0 for Exit!\n")
+    print("3. Press 3 for view students score\n")
+    print("4. Press 0 for Exit!\n")
 
-    command = get_user_command([1,2, 0])
+    command = get_user_command([1,2,3, 0])
 
     if command == 1:
         list_questions()
 
     if command == 2:
         add_new_question()
+    
+    if command == 3:
+        view_students_score()
     
     else:
         exit_program()
@@ -183,16 +188,62 @@ def list_questions():
     else:
         exit_program()
 
-def get_files_in_a_directory(directory):
-    files = []
+def view_students_score():
+    global SCORE_FILE
+    clear_screen()
 
-    for path in os.scandir(directory):
-        if path.is_file():
-            files.append(path.name)
+    scores = get_json_data(SCORE_FILE)
+    if scores is None:
+        scores = []
+    
+    if(len(scores) == 0):
+        print("There are no score.")
 
-    return files
+        print("1. Press 1 for back\n")
+        print("2. Press 0 for Exit!\n")
 
+        command = get_user_command([1, 0])
 
+        if command == 1:
+            teacher_mode()
+        else:
+            exit_program()
+
+    print_score(scores)
+    print("\n\n\n")
+    print("1. Press 1 for back\n")
+    print("2. Press 0 for Exit!\n")
+
+    command = get_user_command([1, 0])
+
+    if command == 1:
+        teacher_mode()
+    else:
+        exit_program()
+   
+
+def print_score(scores):
+    print_column("Roll", 20)
+    print_column("Name", 30)
+    print_column("Score", 30)
+    print("")
+
+    for item in scores:
+        print_column(item["roll"], 20)
+        print_column(item["name"], 30)
+        print_column(item["score"], 30)
+        print("")
+
+def print_column(text, column_length):
+    text = str(text)
+    space_ranges = range(column_length - len(text))
+
+    spaces =""
+    for i in space_ranges:
+        spaces += " "
+    
+    print(text + spaces, end="")
+    
 # Get data from json file
 def get_json_data(filename):
   with open(filename, 'r+') as json_file:
