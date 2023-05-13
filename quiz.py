@@ -8,7 +8,7 @@ from json.decoder import JSONDecodeError
 def teacher_mode():
     clear_screen()
 
-    print("You are a Teacher\n")
+    print("You are a Teacher\n\n\n")
 
     print("1. Press 1 for list all questrion\n")
     print("2. Press 2 for add new question\n")
@@ -24,6 +24,59 @@ def teacher_mode():
     
     else:
         exit_program()
+
+
+def student_mode():
+    clear_screen()
+
+    print("You are a Student\n\n\n")
+
+    print("1. Press 1 for answer questrions\n")
+    print("2. Press 0 for Exit!\n")
+
+    command = get_user_command([1, 0])
+
+    if command == 1:
+        answer_questions()
+
+    else:
+        exit_program()
+
+
+def answer_questions():
+    clear_screen()
+    filename = r"./data/quiz.json"
+
+    quizs = get_json_data(filename)
+    if quizs is None:
+        quizs = []
+        print("There are not question for answer, please contact your teacher for add new question.")
+        exit()
+
+    else:
+        score = 0
+        for item in quizs:
+            clear_screen()
+            print("{}. {}\n".format(item["id"], item["question"]))
+            for option in item['options']:
+                print("\t{}.{}\n".format(option['key'], option['value']))
+            answer = input("Enter your choice: ")
+            # answer = input("")
+            if(answer == item['answer']):
+                score += 1
+        clear_screen()
+        print("Your score is: {}\n\n".format(score))
+
+        print("1. Press 1 for back\n")
+        print("2. Press 0 for Exit!\n")
+
+        command = get_user_command([1, 0])
+
+        if command == 1:
+            student_mode()
+        else:
+            exit_program()
+
 
 
 # Add new question
@@ -53,7 +106,6 @@ def add_new_question():
         last_item = data[-1];
         id = last_item['id'] + 1
 
-
     new_question = {"id": id, "question": question, "options": [
             {"key":"A", "value": option_a},
             {"key":"B", "value": option_b},
@@ -63,6 +115,8 @@ def add_new_question():
     
     data.append(new_question)
     store_json_data(filename, data)
+
+    teacher_mode()
 
 
 # Liar all questions
@@ -109,15 +163,9 @@ def get_files_in_a_directory(directory):
     return files
 
 
-def student_mode():
-    clear_screen()
-
-    print("You are a Student\n")
-
-
 # Get data from json file
 def get_json_data(filename):
-  with open(filename, 'w+') as json_file:
+  with open(filename, 'r+') as json_file:
     try:
         data = json.load(json_file)
         return data
@@ -153,6 +201,8 @@ def get_user_command(options):
         else:
             print("You entered wrong value, please enter correct value")
     return command
+
+
 # Clear console screen     
 def clear_screen():
     #for windows
