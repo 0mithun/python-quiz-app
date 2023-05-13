@@ -2,6 +2,10 @@ import json
 import os
 from json.decoder import JSONDecodeError
 
+student_name = ''
+student_roll = ''
+QUIZ_FILE = r"./data/quiz.json"
+SCORE_FILE = r"./data/score.json"
 
 
 
@@ -27,7 +31,13 @@ def teacher_mode():
 
 
 def student_mode():
+    global student_name, student_roll
     clear_screen()
+
+    if(student_name == '' or student_roll == ''):
+        student_roll = input("Enter your roll: ")
+        student_name = input("Enter your name: ")
+        clear_screen()
 
     print("You are a Student\n\n\n")
 
@@ -44,10 +54,10 @@ def student_mode():
 
 
 def answer_questions():
+    global QUIZ_FILE
     clear_screen()
-    filename = r"./data/quiz.json"
 
-    quizs = get_json_data(filename)
+    quizs = get_json_data(QUIZ_FILE)
     if quizs is None:
         quizs = []
         print("There are not question for answer, please contact your teacher for add new question.")
@@ -59,13 +69,17 @@ def answer_questions():
             clear_screen()
             print("{}. {}\n".format(item["id"], item["question"]))
             for option in item['options']:
-                print("\t{}.{}\n".format(option['key'], option['value']))
+                print("\t{}. {}\n".format(option['key'], option['value']))
             answer = input("Enter your choice: ")
             # answer = input("")
             if(answer == item['answer']):
                 score += 1
         clear_screen()
-        print("Your score is: {}\n\n".format(score))
+
+        store_score(score)
+
+
+        print("Your score is: {} out of {}\n\n".format(score, len(quizs)))
 
         print("1. Press 1 for back\n")
         print("2. Press 0 for Exit!\n")
@@ -78,9 +92,26 @@ def answer_questions():
             exit_program()
 
 
+def store_score(score):
+    global student_roll, student_name, SCORE_FILE
+
+    data = get_json_data(SCORE_FILE)
+    if data is None:
+        data = []
+
+    new_score = {
+        "roll": student_roll,
+        "name": student_name,
+        "score": score
+    }
+    
+    data.append(new_score)
+    store_json_data(SCORE_FILE, data)
+
 
 # Add new question
 def add_new_question():
+    global QUIZ_FILE
     question = input("Enter question:\n")
     option_a = input("Enter option A: ")
     option_b = input("Enter option B: ")
@@ -90,14 +121,13 @@ def add_new_question():
 
     correct_answer = ''
     while(True):
-        correct_answer = input("Enter correct option:\n")
+        correct_answer = input("Enter correct option: ")
         if correct_answer in ['A','B', 'C', 'D']:
             break
         else:
             print("Please enter a valid option\n")
-    
-    filename = r"./data/quiz.json"
-    data = get_json_data(filename)
+
+    data = get_json_data(QUIZ_FILE)
     if data is None:
         data = []
 
@@ -114,18 +144,18 @@ def add_new_question():
         ], "answer": correct_answer}
     
     data.append(new_question)
-    store_json_data(filename, data)
+    store_json_data(QUIZ_FILE, data)
 
     teacher_mode()
 
 
 # Liar all questions
 def list_questions():
+    global QUIZ_FILE
     clear_screen()
 
-    filename = r"./data/quiz.json"
 
-    quizs = get_json_data(filename)
+    quizs = get_json_data(QUIZ_FILE)
     if quizs is None:
         quizs = []
     
@@ -179,15 +209,16 @@ def store_json_data(filename, data):
 
 # Delete question by id
 def delete_question_by_id(id):
-    filename = r"./data/quiz.json"
-    data = get_json_data(filename)
+    global QUIZ_FILE
+
+    data = get_json_data(QUIZ_FILE)
     if data is not None:
         for item in data:
             if item.get('id') == id:
                 data.remove(item)
                 break
 
-        store_json_data(filename, data)
+        store_json_data(QUIZ_FILE, data)
 
 
 #Get command input from user
@@ -216,12 +247,13 @@ def clear_screen():
 
 #Exit the program
 def exit_program():
-    print("Good Bey!")
+    print("\n\n")
+    print("\t\t\t\tGood Bey!\t\t\t\t")
     exit();
 
 
 def main():
-    print("\t\t\t\t\tWelcome to QUIZ App\t\t\t\t\n")
+    print("\t\t\t\t\tWelcome to QUIZ App\t\t\t\t")
     print("\n\n")
 
     print("1. Press 1 for Teacher\n")
@@ -229,8 +261,6 @@ def main():
     print("3. Press 0 for Exit!\n")
 
     command = get_user_command([0,1,2])
-
-    print("You entered {}".format(command))
 
     if(command == 1):
         teacher_mode()
